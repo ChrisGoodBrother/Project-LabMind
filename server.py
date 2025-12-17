@@ -41,7 +41,8 @@ def run_script():
     global current_process
     
     data = request.json
-    script_name = data.get('script')
+    script_name = 'multi_agent.py'
+    scripts = data.get('scripts')
     
     if not script_name:
         return jsonify({"error": "No script specified"}), 400
@@ -56,7 +57,7 @@ def run_script():
         try:
             # Run the script and stream output
             current_process = subprocess.Popen(
-                [sys.executable, str(script_path)],
+                [sys.executable, str(script_path)] + [str(SCRIPTS_DIR / s) for s in scripts],
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
                 universal_newlines=True,
