@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify, Response, render_template
 from flask_cors import CORS
 import os
+import json
 import subprocess
 import signal
 import sys
@@ -42,7 +43,8 @@ def run_script():
     
     data = request.json
     script_name = 'multi_agent.py'
-    scripts = data.get('scripts')
+    agents = data.get('agents')
+    first_message = data.get("firstMessage")
     
     if not script_name:
         return jsonify({"error": "No script specified"}), 400
@@ -57,12 +59,22 @@ def run_script():
         try:
             # Run the script and stream output
             current_process = subprocess.Popen(
-                [sys.executable, str(script_path)] + [str(SCRIPTS_DIR / s) for s in scripts],
-                stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT,
-                universal_newlines=True,
-                bufsize=1
+            [sys.executable, str(script_path)],
+            stdin=subprocess.PIPE,   # ✅ REQUIRED
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            bufsize=1
             )
+
+            payload = {
+                "agents": agents,
+                "firstMessage": first_message
+            }
+
+            current_process.stdin.write(json.dumps(payload) + "\n")
+            current_process.stdin.flush()
+            current_process.stdin.close()
             
             # Stream output line by line
             for line in current_process.stdout:

@@ -25,3 +25,18 @@ def createAgent(name, message, description, llm_config, terminationMessage=None)
     )
 
     return agent
+
+def build_agents(agent_json_list, llm_config):
+    agents = []
+
+    for agent_data in agent_json_list:
+        agent = createAgent(
+            name=agent_data["name"],
+            message=agent_data["message"],
+            description=agent_data["description"],
+            llm_config=llm_config,
+            terminationMessage=agent_data.get("terminationMessage")
+        )
+        agents.append(agent)
+
+    return agents
